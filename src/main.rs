@@ -1,28 +1,9 @@
-use clap::{Args, Subcommand, Parser};
+pub mod server;
+pub mod args;
 
-#[derive(Debug, Parser)]
-#[clap(author, version, about)]
-struct RuzkyArgs {
-    #[clap(subcommand)]
-    entity_type: EntityType,
-}
-
-#[derive(Debug, Subcommand)]
-enum EntityType {
-    /// Create a static rest api to test frontends
-    #[clap(name = "server")]
-    Server(ServerArgs),
-}
-
-#[derive(Debug, Args)]
-struct ServerArgs {
-    /// Init ruzky server file
-    #[clap(short, long, conflicts_with = "start")]
-    init: bool,
-    /// Start ruzky server
-    #[clap(short, long, conflicts_with = "init")]
-    start: bool,
-}
+use clap::Parser;
+use server::{init::init_server, start::start_server};
+use args::{EntityType, RuzkyArgs};
 
 fn main() {
     let args = RuzkyArgs::parse();
@@ -30,18 +11,17 @@ fn main() {
     match args.entity_type {
         EntityType::Server(server_args) => {
             if server_args.init {
-                init_server();
+                match server_args.template {
+                    Some(template) => init_server(template),
+                    None => init_server("default".to_string())
+                }
             } else if server_args.start {
+                start_server();
+            } else if server_args.template.is_some() {
+                println!("no puedes utilizar este argumento solo")
+            } else {
                 start_server();
             }
         }
     }
-}
-
-fn init_server() {
-    println!("Initializing server...");
-}
-
-fn start_server() {
-    println!("Starting server...");
 }
