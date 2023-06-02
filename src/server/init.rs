@@ -7,10 +7,10 @@
 /// # Examples
 ///
 /// ```
-/// init_server("blog".to_string());
-/// init_server("default".to_string());
+/// init_server("blog");
+/// init_server("default");
 /// ```
-pub fn init_server(template: String) {
+pub fn init_server(template: &str) {
     match template.to_lowercase().as_str() {
         "blog" => println!("Using the blog template."),
         "todo" => println!("Using the todo template."),
