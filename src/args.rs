@@ -1,5 +1,6 @@
 use clap::{Args, Subcommand, Parser};
 
+/// Represents the command-line arguments for the Ruzky application.
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
 pub struct RuzkyArgs {
@@ -7,22 +8,24 @@ pub struct RuzkyArgs {
     pub entity_type: EntityType,
 }
 
+/// Represents the entity type for the Ruzky application.
 #[derive(Debug, Subcommand)]
 pub enum EntityType {
-    /// Create a static rest api to test frontends
+    /// Create a static REST API to test frontends
     #[clap(name = "server")]
     Server(ServerArgs),
 }
 
+/// Represents the command-line arguments for the Ruzky server.
 #[derive(Debug, Args)]
 pub struct ServerArgs {
-    /// Init ruzky server file
+    /// Initialize the Ruzky server file
     #[clap(short, long, conflicts_with = "start")]
     pub init: bool,
-    /// Select an api template (Blog/Todo/Profiles)
+    /// Select an API template (Blog/Todo/Profiles)
     #[clap(short, long, conflicts_with = "start")]
     pub template: Option<String>,
-    /// Start ruzky server
+    /// Start the Ruzky server
     #[clap(short, long, conflicts_with = "init")]
     pub start: bool,
 }
