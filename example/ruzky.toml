@@ -1,5 +1,5 @@
 [server]
-ip = "192.168.42.58"
+ip = "localhost"
 port = 8080
 base_dir = "./ruzky"
 
