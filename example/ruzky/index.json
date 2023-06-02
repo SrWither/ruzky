@@ -1,0 +1,9 @@
+{
+  "name": "SrWither",
+  "age": 20,
+  "skills": {
+    "jump": 100,
+    "speed": 20,
+    "intelligence": 70
+  }
+}

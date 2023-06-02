@@ -11,7 +11,8 @@ pub struct Config {
 #[derive(Debug, Deserialize)]
 pub struct ServerSettings {
     pub ip: String,
-    pub port: u32
+    pub port: u32,
+    pub base_dir: String
 }
 
 #[derive(Debug, Deserialize)]
