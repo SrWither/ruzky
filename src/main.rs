@@ -2,6 +2,7 @@ pub mod server;
 pub mod args;
 
 use clap::Parser;
+use colored::Colorize;
 use server::{init::init_server, start::start_server};
 use args::{EntityType, RuzkyArgs};
 
@@ -19,7 +20,7 @@ fn main() {
             } else if server_args.start {
                 start_server();
             } else if server_args.template.is_some() {
-                println!("You cannot use this argument alone.");
+                println!("{}", "You cannot use this argument alone.".red().bold().underline());
             } else {
                 start_server();
             }

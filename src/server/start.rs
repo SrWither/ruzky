@@ -6,25 +6,30 @@ use std::{
 
 use super::read_cfg::read_cfg;
 
+use colored::Colorize;
 use threadpool::ThreadPool;
 
 /// Starts the server with multiple threads.
 pub fn start_server() {
     let config = read_cfg();
     println!(
-        "Server running on: {}:{}",
+        "{} {}:{}",
+        "Server running on:".green(),
         config.server.ip, config.server.port
     );
 
-    let listener = TcpListener::bind(format!(
-        "{}:{}",
-        config.server.ip, config.server.port
-    ))
-    .unwrap();
+    let listener = match TcpListener::bind(format!("{}:{}", config.server.ip, config.server.port)) {
+        Ok(listener) => listener,
+        Err(err) => panic!("Failed to bind to the specified address: {}", err),
+    };
+
     let pool = ThreadPool::new(4);
 
     for stream in listener.incoming() {
-        let stream = stream.unwrap();
+        let stream = match stream {
+            Ok(stream) => stream,
+            Err(err) => panic!("Failed to establish connection: {}", err),
+        };
 
         pool.execute(|| {
             handle_connection(stream);
@@ -42,16 +47,27 @@ fn handle_connection(mut stream: TcpStream) {
 
     let config = read_cfg();
 
-    stream.read(&mut buffer).unwrap();
+    match stream.read(&mut buffer) {
+        Ok(_) => {},
+        Err(err) => panic!("Failed to read data from stream: {}", err),
+    };
 
     for route in config.routes.iter() {
         let contents: String;
-        let bufstr = String::from(std::str::from_utf8(&buffer).unwrap());
+        let bufstr = match std::str::from_utf8(&buffer) {
+            Ok(str) => String::from(str),
+            Err(err) => panic!("Failed to convert buffer to string: {}", err),
+        };
 
         let path = format!("GET {} HTTP/1.1\r\n", route.path);
 
         let (status_line, filename) = ("HTTP/1.1 200 OK", format!("{}/{}", config.server.base_dir, route.file));
-        contents = fs::read_to_string(filename).unwrap();
+
+        // Check if file exists
+        contents = match fs::read_to_string(&filename) {
+            Ok(content) => content,
+            Err(_) => format!("{{\"error\": \"File not found ({})\" }}", route.file),
+        };
 
         // Configure response headers for successful request
         response = format!(
@@ -63,7 +79,10 @@ fn handle_connection(mut stream: TcpStream) {
 
         // Return the JSON data for the requested path
         if bufstr.contains(&path) {
-            stream.write_all(response.as_bytes()).unwrap();
+            match stream.write_all(response.as_bytes()) {
+                Ok(_) => {},
+                Err(err) => panic!("Failed to write data to stream: {}", err),
+            }
         }
         // Handle 404 errors
         else if count == config.routes.iter().len() {
@@ -79,9 +98,16 @@ fn handle_connection(mut stream: TcpStream) {
             );
 
             // Return the 404 JSON data
-            stream.write_all(response.as_bytes()).unwrap();
+            match stream.write_all(response.as_bytes()) {
+                Ok(_) => {},
+                Err(err) => panic!("Failed to write data to stream: {}", err),
+            }
         }
         count += 1;
     }
-    stream.flush().unwrap();
+
+    match stream.flush() {
+        Ok(_) => {},
+        Err(err) => panic!("Failed to flush stream: {}", err),
+    };
 }

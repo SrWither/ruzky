@@ -1,3 +1,11 @@
+use std::process::exit;
+
+struct Template<'a> {
+    file: &'a str,
+    path: &'a str,
+    content: &'a str,
+}
+
 /// Initializes the Ruzky server with the specified template.
 ///
 /// # Arguments
@@ -16,6 +24,19 @@ pub fn init_server(template: &str) {
         "todo" => println!("Using the todo template."),
         "profile" => println!("Using the profile template."),
         "default" => println!("Using the default template."),
-        _ => println!("Invalid template specified."),
+        _ => {
+            println!("Invalid template specified.");
+            exit(0)
+        },
     }
+}
+
+fn setup_blog_template() {
+    let template: Vec<Template> = vec![
+        Template {
+            path: "/",
+            file: "index.json",
+            content: "nothing..."
+        }
+    ];
 }
