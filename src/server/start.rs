@@ -13,7 +13,7 @@ use threadpool::ThreadPool;
 pub fn start_server() {
     let config = read_cfg();
     println!(
-        "{} {}:{}",
+        "{} http://{}:{}",
         "Server running on:".green(),
         config.server.ip, config.server.port
     );
