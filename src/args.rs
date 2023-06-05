@@ -25,6 +25,9 @@ pub struct ServerArgs {
     /// Select an API template (Blog/Todo/Profiles)
     #[clap(short, long, conflicts_with = "start")]
     pub template: Option<String>,
+    /// Initialize with a directory with existing jsons files
+    #[clap(short, long, conflicts_with_all = &["start", "template"])]
+    pub directory: Option<String>,
     /// Start the Ruzky server
     #[clap(short, long, conflicts_with = "init")]
     pub start: bool,
