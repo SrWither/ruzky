@@ -1,6 +1,6 @@
 use std::fs;
 use std::fs::OpenOptions;
-use std::io::{BufWriter, Result, Write};
+use std::io::{BufWriter, Result, Write, ErrorKind, Error};
 use std::path::Path;
 use std::process::exit;
 
@@ -84,6 +84,37 @@ pub fn init_server(template: &str) {
     }
 }
 
+/// Auxiliary function used by `get_filenames` to visit a directory and its subdirectories recursively.
+///
+/// # Arguments
+///
+/// * `directory` - The path of the directory to visit.
+/// * `base_directory` - The base directory path for relative file names.
+/// * `file_names` - A mutable vector to store the collected file names.
+///
+/// # Errors
+///
+/// The function can return an error if any issue occurs while reading the directory.
+fn visit_directory(directory: &Path, base_directory: &Path, file_names: &mut Vec<String>) -> Result<()> {
+    for entry in fs::read_dir(directory)? {
+        if let Ok(entry) = entry {
+            let path = entry.path();
+            if path.is_file() && path.extension().map_or(false, |ext| ext == "json") {
+                if let Some(file_name) = path.strip_prefix(base_directory)
+                    .ok()
+                    .and_then(|stripped_path| stripped_path.to_str())
+                {
+                    file_names.push(file_name.to_string());
+                }
+            } else if path.is_dir() {
+                visit_directory(&path, base_directory, file_names)?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
 /// Retrieves the filenames in the specified directory.
 ///
 /// # Arguments
@@ -95,13 +126,15 @@ pub fn init_server(template: &str) {
 /// A `Result` containing a vector of filenames if successful, or an error if the operation failed.
 fn get_filenames(directory: String) -> Result<Vec<String>> {
     let mut file_names = Vec::new();
+    let path = Path::new(&directory);
 
-    for entry in fs::read_dir(directory)? {
-        if let Ok(entry) = entry {
-            if let Some(file_name) = entry.file_name().to_str() {
-                file_names.push(file_name.to_string());
-            }
-        }
+    if path.is_dir() {
+        visit_directory(path, path, &mut file_names)?;
+    } else {
+        return Err(Error::new(
+            ErrorKind::InvalidInput,
+            "Invalid directory path",
+        ));
     }
 
     Ok(file_names)
